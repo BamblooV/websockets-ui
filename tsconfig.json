@@ -5,9 +5,9 @@
   "compilerOptions": {
     "target": "ES6",
     "module": "CommonJS",
-    "rootDir": "src",
+    "rootDir": ".",
     "moduleResolution": "node",
-    "baseUrl": "src",
+    "baseUrl": ".",
     "allowJs": true,
     "outDir": "build",
     "esModuleInterop": true,
@@ -15,6 +15,6 @@
     "strict": true,
     "skipLibCheck": true
   },
-  "include": ["src/**/*"],
-  "exclude": ["webpack.config.js", "build"]
+  "include": ["src/**/*", "index.ts"],
+  "exclude": ["webpack.config.js", "build", "front", "node_modules", ".eslintrc.js"]
 }
