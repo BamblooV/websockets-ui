@@ -20,9 +20,9 @@ export class PlayerService {
     const player = this.data[name];
     if (player.password === password) {
       player.socket = socket;
-      return true;
+      return player;
     }
-    return false;
+    return undefined;
   }
 
   getWinners() {
