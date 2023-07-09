@@ -1,3 +1,4 @@
+import WebSocket from 'ws';
 import { Player } from '../models/Player';
 
 export type Winner = {
