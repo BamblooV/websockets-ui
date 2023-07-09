@@ -17,10 +17,9 @@ export class PlayerService {
     return this.data.hasOwnProperty(name);
   }
 
-  auth(name: string, password: string, socket: WebSocket) {
+  auth(name: string, password: string) {
     const player = this.data[name];
     if (player.password === password) {
-      player.socket = socket;
       return player;
     }
     return undefined;

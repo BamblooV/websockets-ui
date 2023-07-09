@@ -21,7 +21,7 @@ class ResponseFactory {
 }
 
 export class App {
-  private connectedPlayers: { [key: number]: Player } = {};
+  private openSockets: { [key: number]: WebSocket } = {};
 
   constructor(private playerService: PlayerService) {}
 
@@ -66,19 +66,24 @@ export class App {
     let player: Player | undefined;
 
     if (this.playerService.isAlreadyRegistered(name)) {
-      player = this.playerService.auth(name, password, socket);
+      player = this.playerService.auth(name, password);
+
       if (!player) {
         console.log('Wrong password');
 
         responseData.error = true;
         responseData.errorText = 'Wrong password';
+        return responseData;
       }
 
+      this.openSockets[player.id].close();
+
+      this.openSockets[player.id] = socket;
       return responseData;
     }
 
-    player = Player.isValidUserBody(name, password, socket)
-      ? new Player(name, password, socket)
+    player = Player.isValidUserBody(name, password)
+      ? new Player(name, password)
       : undefined;
 
     if (!player) {
@@ -90,7 +95,9 @@ export class App {
     }
 
     this.playerService.addPlayer(player);
-    this.connectedPlayers[player.id] = player;
+    this.openSockets[player.id] = socket;
     return responseData;
   }
+
+  private createRoom() {}
 }
