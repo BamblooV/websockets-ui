@@ -7,7 +7,7 @@ export type Winner = {
 };
 
 export class PlayerService {
-  private data: { [key: string]: Player } = {};
+  private data: Record<string, Player> = {};
 
   addPlayer(player: Player) {
     this.data[player.name] = player;
@@ -19,6 +19,7 @@ export class PlayerService {
 
   auth(name: string, password: string) {
     const player = this.data[name];
+
     if (player.password === password) {
       return player;
     }

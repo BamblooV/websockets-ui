@@ -1,7 +1,7 @@
 import WebSocket from 'ws';
 import { PlayerService } from '../services';
 import { ClientCommands, ServerCommands } from '../commands';
-import { Player } from '../models';
+import { Player, Room, UpdateRoomData } from '../models';
 
 type ClientRequest = {
   type: ClientCommands;
@@ -13,15 +13,24 @@ class ResponseFactory {
   data: string;
   id: 0;
 
-  constructor(type: ServerCommands, data: any) {
+  constructor(type: ServerCommands, data: string) {
     this.type = type;
-    this.data = JSON.stringify(data);
+    this.data = data;
     this.id = 0;
+  }
+
+  static stringInstance(type: ServerCommands, data: string) {
+    return JSON.stringify(new ResponseFactory(type, data));
   }
 }
 
+type ExtendedSocket = WebSocket & {
+  player?: Player;
+  room?: Room;
+};
+
 export class App {
-  private openSockets: { [key: number]: WebSocket } = {};
+  private openSockets: Record<number, ExtendedSocket> = {};
 
   constructor(private playerService: PlayerService) {}
 
@@ -40,12 +49,26 @@ export class App {
 
     switch (type) {
       case ClientCommands.REG: {
-        const responseData = this.authHandler(data, socket);
-        const respone = new ResponseFactory(ServerCommands.REG, responseData);
-        console.log(responseData);
+        const responseData = JSON.stringify(this.authHandler(data, socket));
+        const respone = ResponseFactory.stringInstance(
+          ServerCommands.REG,
+          responseData,
+        );
 
-        socket.send(JSON.stringify(respone));
+        socket.send(respone);
+
+        this.notifyEveryone(
+          ResponseFactory.stringInstance(
+            ServerCommands.UPDATE_ROOM,
+            this.updateRooms(),
+          ),
+        );
+
         break;
+      }
+
+      case ClientCommands.CREATE_ROOM: {
+        this.createRoom(socket);
       }
 
       default:
@@ -53,7 +76,7 @@ export class App {
     }
   }
 
-  private authHandler(data: string, socket: WebSocket) {
+  private authHandler(data: string, socket: ExtendedSocket) {
     const { name, password } = JSON.parse(data);
 
     let responseData = {
@@ -77,8 +100,10 @@ export class App {
       }
 
       this.openSockets[player.id].close();
+      this.openSockets[player.id].terminate();
 
       this.openSockets[player.id] = socket;
+      socket.player = player;
       return responseData;
     }
 
@@ -96,8 +121,55 @@ export class App {
 
     this.playerService.addPlayer(player);
     this.openSockets[player.id] = socket;
+    socket.player = player;
     return responseData;
   }
 
-  private createRoom() {}
+  private createRoom(socket: ExtendedSocket) {
+    if (socket.room) {
+      return;
+    }
+
+    const room = new Room();
+    if (!socket.player) {
+      throw new Error('Socket should have player field');
+    }
+    room.addPlayer(socket.player);
+
+    socket.room = room;
+
+    const responseData = this.updateRooms();
+    const response = ResponseFactory.stringInstance(
+      ServerCommands.UPDATE_ROOM,
+      responseData,
+    );
+    this.notifyEveryone(response);
+  }
+
+  private notifyEveryone(response: string) {
+    console.log('send new rooms to everyone');
+
+    Object.values(this.openSockets).forEach((socket) => {
+      socket.send(response);
+    });
+  }
+
+  private updateRooms() {
+    const responseData = Object.values(this.openSockets).reduce(
+      (acc, socket) => {
+        const { room } = socket;
+        if (room && room.players.length === 1) {
+          const player = room.players[0];
+          acc.push({
+            roomId: room.id,
+            roomUsers: [{ name: player.name, index: player.id }],
+          });
+        }
+        return acc;
+      },
+      <UpdateRoomData[]>[],
+    );
+
+    return JSON.stringify(responseData);
+  }
 }

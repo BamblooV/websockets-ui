@@ -10,7 +10,7 @@ const playerService = new PlayerService();
 
 const app = new App(playerService);
 
-wss.on('connection', (socket) => {
+wss.on('connection', (socket, req) => {
   console.log(`New connection to wss:${WS_PORT}`);
   app.connectionHandler(socket);
 });
