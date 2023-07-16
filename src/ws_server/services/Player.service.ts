@@ -1,4 +1,3 @@
-import WebSocket from 'ws';
 import { Player } from '../models/Player';
 
 export type Winner = {
@@ -13,6 +12,11 @@ export class PlayerService {
     this.data[player.name] = player;
   }
 
+  addBot() {
+    const bot = Player.createBot();
+    this.addPlayer(bot);
+  }
+
   isAlreadyRegistered(name: string) {
     return this.data.hasOwnProperty(name);
   }
@@ -24,6 +28,10 @@ export class PlayerService {
       return player;
     }
     return undefined;
+  }
+
+  get players() {
+    return this.data;
   }
 
   getWinners() {

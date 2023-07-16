@@ -31,4 +31,10 @@ export class Player {
   win() {
     this._wins += 1;
   }
+
+  static createBot() {
+    const bot = new Player('bot', Math.random().toString());
+    bot.id = -1;
+    return bot;
+  }
 }
