@@ -123,6 +123,8 @@ export class App {
   private authHandler(data: string, socket: ExtendedSocket) {
     const { name, password } = JSON.parse(data);
 
+    console.log(`auth user: ${name} ${password}`);
+
     let responseData = {
       name,
       password,
@@ -203,7 +205,7 @@ export class App {
 
     const { player } = socket;
 
-    console.log('Add user ', player?.name);
+    console.log(`Add user ${player?.name} to room`);
 
     const room = Object.values(this.openSockets).find(
       (roomMaster) => roomMaster.room?.id === indexRoom,
@@ -230,7 +232,7 @@ export class App {
   }
 
   private createGame(room: Room) {
-    console.log('create game for room ', room.id);
+    console.log('Create game for room ', room.id);
     const game = new Game(room);
 
     const gameService = new GameService(game);
@@ -432,8 +434,6 @@ export class App {
         });
       });
 
-      console.log(cellsToKill);
-
       cellsToKill.forEach(({ x, y }) => {
         players.forEach((player) => {
           const socket = this.openSockets[player.id];
@@ -476,8 +476,6 @@ export class App {
   }
 
   private randomAttack(socket: ExtendedSocket, data: string) {
-    console.log('random attack');
-
     const { gameId, indexPlayer } = JSON.parse(data) as RandomAttackRequest;
 
     const service = socket.gameService;
