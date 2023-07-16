@@ -4,7 +4,7 @@
   "description": "Template for the WebSocket remote control task",
   "private": true,
   "scripts": {
-    "start": "node ./index.ts",
+    "start": "ts-node ./index.ts",
     "start:dev": "npx nodemon ./index.ts",
     "format": "prettier --write \"src/**/*.ts\"",
     "eslint": "npx eslint . --fix",
