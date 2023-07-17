@@ -45,7 +45,10 @@ class ResponseFactory {
   }
 
   static stringInstance(type: ServerCommands, data: string) {
-    return JSON.stringify(new ResponseFactory(type, data));
+    const response = JSON.stringify(new ResponseFactory(type, data));
+    console.log(response);
+
+    return response;
   }
 }
 
